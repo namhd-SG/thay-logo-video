@@ -178,7 +178,7 @@ Không sao. Chip trên trang ghi **"agy: TẮT — khoanh tay"**. Mỗi video m�
 | `command not found: python3` | Chạy `bash cai-dat.sh` — script tự cài Python qua Homebrew. |
 | `command not found: thay-logo` | Đừng gõ lệnh trần. Mở tool bằng **nhấp đúp `mo-tool.command`**. Muốn gõ lệnh thì dùng `.venv/bin/thay-logo` trong thư mục tool. Chưa có `.venv` thì chạy `bash cai-dat.sh`. |
 | `✗ Cổng 8790 đang bị một chương trình khác dùng` | Mở Terminal trong thư mục tool, chạy: `CONG=8791 ./mo-tool.command`, rồi mở `http://127.0.0.1:8791`. |
-| `LỖI: cổng 8790 đang bị chương trình khác dùng` ngay sau khi vừa tắt tool | Máy chưa nhả cổng kịp. Chờ khoảng 30 giây rồi nhấp đúp `mo-tool.command` lại. |
+| `LỖI: cổng 8790 đang bị chương trình khác dùng` ngay sau khi vừa tắt tool | Tool cũ còn chạy ở một cửa sổ Terminal khác. Đóng cửa sổ đó (hoặc bấm Ctrl+C trong đó), chờ vài giây rồi nhấp đúp `mo-tool.command` lại. |
 | Bước Python báo bản cũ (ví dụ `3.9`) | Python sẵn của macOS quá cũ. `bash cai-dat.sh` tự cài `python@3.12` và tự tạo lại `.venv`. Vẫn lỗi: `brew install python@3.12` rồi chạy lại script. |
 | `ffmpeg vẫn thiếu libx264` | Chạy `brew reinstall ffmpeg` rồi `bash cai-dat.sh`. |
 | *"mo-tool.command" không thể mở vì nhà phát triển không xác định* | **Chuột phải** vào `mo-tool.command` → **Open (Mở)** → **Open**. Chỉ cần 1 lần. Hoặc trong Terminal: `xattr -dr com.apple.quarantine ` rồi kéo thả thư mục tool vào, Enter. |

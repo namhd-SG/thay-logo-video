@@ -270,18 +270,33 @@ def tao_app(data_dir: Path, ffmpeg: str, *, chay_worker: bool = True, agy_lenh: 
     return app
 
 
-def chay_may_chu(data_dir: Path, ffmpeg: str, cong: int, mo_trinh_duyet: bool, *, agy_lenh: str | None,
-                 agy_model: str | None) -> None:
+def cong_dang_ban(cong: int) -> bool:
+    """Có chương trình nào đang giữ cổng này không. SO_REUSEADDR giống uvicorn: cổng vừa nhả (TIME_WAIT
+    sau khi tắt tool) vẫn tính là rảnh, chỉ cổng đang có máy chủ khác lắng nghe mới tính là bận.
+    Thử kết nối trước: trên macOS, SO_REUSEADDR bind được 127.0.0.1 cả khi máy chủ khác nghe ở 0.0.0.0."""
     import socket
 
-    import uvicorn
-
-    with socket.socket() as s:  # cổng bận ⇒ nói rõ cách đổi, thay vì để uvicorn in lỗi khó hiểu
+    try:
+        socket.create_connection(("127.0.0.1", cong), timeout=0.5).close()
+        return True
+    except OSError:
+        pass
+    with socket.socket() as s:
+        s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         try:
             s.bind(("127.0.0.1", cong))
         except OSError:
-            raise SystemExit(f"LỖI: cổng {cong} đang bị chương trình khác dùng (hoặc thay-logo web đang mở ở cửa sổ khác). "
-                             f"Chạy lại với cổng khác: thay-logo web --cong {cong + 1}") from None
+            return True
+    return False
+
+
+def chay_may_chu(data_dir: Path, ffmpeg: str, cong: int, mo_trinh_duyet: bool, *, agy_lenh: str | None,
+                 agy_model: str | None) -> None:
+    import uvicorn
+
+    if cong_dang_ban(cong):  # cổng bận ⇒ nói rõ cách đổi, thay vì để uvicorn in lỗi khó hiểu
+        raise SystemExit(f"LỖI: cổng {cong} đang bị chương trình khác dùng (hoặc thay-logo web đang mở ở cửa sổ khác). "
+                         f"Chạy lại với cổng khác: thay-logo web --cong {cong + 1}")
     app = tao_app(data_dir, ffmpeg, agy_lenh=agy_lenh, agy_model=agy_model)
     url = f"http://127.0.0.1:{cong}"
     agy = f"BẬT ({agy_lenh}, model {agy_model})" if agy_lenh else "TẮT — video mới chờ bạn khoanh tay"

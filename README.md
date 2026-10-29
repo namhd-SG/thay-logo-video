@@ -1,5 +1,7 @@
 # Thay logo video
 
+📘 [Hướng dẫn cài đặt](HUONG-DAN-CAI-DAT.md) · 📗 [Hướng dẫn sử dụng](HUONG-DAN-SU-DUNG.md)
+
 Tool thay **logo cũ / watermark** trong video bằng **logo của bạn**, kể cả logo trôi đổi chỗ theo thời gian. Mọi thứ chạy trên máy Mac của bạn, mở bằng trình duyệt ở địa chỉ `http://127.0.0.1:8790`. Không cần đăng nhập, không cần mạng (trừ khi bật tự tìm bằng agy hoặc dán link Drive).
 
 ![Trước / sau](docs/anh/00-truoc-sau.jpg)
@@ -24,51 +26,11 @@ Cách tool làm việc:
 
 ## 2. Cài đặt (làm một lần)
 
-Mở **Terminal** rồi chạy lần lượt từng lệnh.
-
-**2.1. Homebrew** (đã có thì bỏ qua; kiểm bằng `brew --version`):
-```bash
-/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
-```
-
-**2.2. Python + ffmpeg:**
-```bash
-brew install python ffmpeg
-python3 --version          # phải ra 3.11 trở lên
-ffmpeg -hide_banner -encoders | grep libx264    # phải ra một dòng có chữ libx264
-```
-
-**2.3. Tải tool về** (thay `<link-repo>` bằng link repo bạn được mời vào):
-```bash
-cd ~
-git clone <link-repo> thay-logo-video
-cd thay-logo-video
-```
-
-**2.4. Tạo môi trường Python riêng và cài tool:**
-```bash
-python3 -m venv .venv
-source .venv/bin/activate
-pip install .
-thay-logo --help           # ra danh sách lệnh là cài xong
-```
-
-> Từ đây, **mỗi lần mở Terminal mới** để dùng tool, chạy lại 2 lệnh này trước:
-> `cd ~/thay-logo-video` rồi `source .venv/bin/activate`.
-
-**2.5. agy (tuỳ chọn, nên có):** tool gọi lệnh `agy` (Antigravity CLI) có sẵn trên máy bạn. Cài và đăng nhập agy theo hướng dẫn của Antigravity, rồi kiểm tra:
-```bash
-agy models                 # phải in ra danh sách model, trong đó có gemini-3.8-flash-low
-```
-Nếu `agy models` báo lỗi, chưa đăng nhập, hoặc không có lệnh `agy`, tool vẫn chạy được: video mới sẽ chờ bạn khoanh tay (xem mục 4).
+Làm theo **[HUONG-DAN-CAI-DAT.md](HUONG-DAN-CAI-DAT.md)** (từng bước cho máy Mac trắng). Tóm tắt: lấy code về, rồi trong thư mục tool chạy `bash cai-dat.sh` (tự kiểm/cài Python 3.11+, ffmpeg có libx264, môi trường `.venv`, và kiểm agy). Mở tool: nhấp đúp `mo-tool.command`.
 
 ## 3. Dùng tool: trang web (cách chính)
 
-```bash
-cd ~/thay-logo-video
-source .venv/bin/activate
-thay-logo web
-```
+Nhấp đúp **`mo-tool.command`** trong thư mục tool (hoặc trong Terminal: `.venv/bin/thay-logo web`).
 Trình duyệt tự mở `http://127.0.0.1:8790`. Cửa sổ Terminal phải **để mở** suốt lúc dùng; tắt tool bằng **Ctrl+C** trong Terminal đó. Dữ liệu (video, kết quả) nằm ở thư mục `data/` trong thư mục bạn đang đứng.
 
 Muốn thử nhanh: dùng video mẫu đi kèm `vi_du/video_mau.mp4` (video tổng hợp 6 giây, có chữ "OLD LOGO" trôi chậm).
@@ -178,7 +140,7 @@ Mã thoát: `0` = đã thay và ghi file · `2` = **không thay** (chưa đủ c
 
 | Hiện tượng | Cách xử lý |
 |---|---|
-| `command not found: thay-logo` | Chưa bật môi trường: `cd ~/thay-logo-video && source .venv/bin/activate` |
+| `command not found: thay-logo` | Mở tool bằng `mo-tool.command`, hoặc gọi `.venv/bin/thay-logo` trong thư mục tool. Chưa có `.venv` thì chạy `bash cai-dat.sh`. |
 | `LỖI: không tìm thấy ffmpeg` / `thiếu bộ mã hoá libx264` | `brew install ffmpeg`, hoặc trỏ tới bản có libx264: `--ffmpeg /duong/dan/ffmpeg` |
 | `LỖI: cổng 8790 đang bị chương trình khác dùng` | Tool đang mở ở cửa sổ Terminal khác, hoặc máy có chương trình khác dùng cổng đó: `thay-logo web --cong 8791` |
 | Trang báo "Mất kết nối tới máy chủ" | Cửa sổ Terminal chạy `thay-logo web` đã bị đóng hoặc Ctrl+C. Chạy lại lệnh. |

@@ -33,7 +33,7 @@ brew --version
 - Bấm **Enter** khi nó hỏi "Press RETURN to continue".
 - Chờ 5–15 phút.
 
-**Kết quả đúng:** cuối cùng có chữ `Installation successful!` và mục **"Next steps"** với 2 dòng lệnh. **Copy và chạy đúng 2 dòng đó** (trên Mac chip Apple chúng có dạng `echo >> ... ` và `eval "$(/opt/homebrew/bin/brew shellenv)"`). Sau đó chạy lại `brew --version` phải ra số phiên bản.
+**Kết quả đúng:** cuối cùng có chữ `Installation successful!` và mục **"Next steps"** với 2 dòng lệnh. **Copy và chạy đúng 2 dòng đó** (Mac chip Apple: `eval "$(/opt/homebrew/bin/brew shellenv)"`; Mac chip Intel: `eval "$(/usr/local/bin/brew shellenv)"`). Sau đó chạy lại `brew --version` phải ra số phiên bản.
 
 ---
 
@@ -174,7 +174,7 @@ Không sao. Chip trên trang ghi **"agy: TẮT — khoanh tay"**. Mỗi video m�
 
 | Thấy chữ | Làm |
 |---|---|
-| `command not found: brew` | Chưa cài Homebrew, hoặc chưa chạy 2 dòng "Next steps". Làm lại Bước 2. Nếu đã cài: chạy `eval "$(/opt/homebrew/bin/brew shellenv)"` (Mac chip Intel: `eval "$(/usr/local/bin/brew shellenv)"`). |
+| `command not found: brew` | Chưa cài Homebrew, hoặc chưa chạy 2 dòng "Next steps". Làm lại Bước 2. Nếu đã cài, dán dòng này (đúng cho cả Mac chip Apple lẫn Intel): `eval "$([ "$(uname -m)" = arm64 ] && /opt/homebrew/bin/brew shellenv || /usr/local/bin/brew shellenv)"` |
 | `command not found: python3` | Chạy `bash cai-dat.sh` — script tự cài Python qua Homebrew. |
 | `command not found: thay-logo` | Đừng gõ lệnh trần. Mở tool bằng **nhấp đúp `mo-tool.command`**. Muốn gõ lệnh thì dùng `.venv/bin/thay-logo` trong thư mục tool. Chưa có `.venv` thì chạy `bash cai-dat.sh`. |
 | `✗ Cổng 8790 đang bị một chương trình khác dùng` | Mở Terminal trong thư mục tool, chạy: `CONG=8791 ./mo-tool.command`, rồi mở `http://127.0.0.1:8791`. |

@@ -20,6 +20,10 @@ done
 # agy thường nằm ở ~/.local/bin
 [ -d "$HOME/.local/bin" ] && PATH="$PATH:$HOME/.local/bin"
 
+# Mac Intel: Homebrew đã ngừng bản dựng sẵn (Tier 3) ⇒ brew install phải tự biên dịch, rất lâu.
+INTEL_CHAM=""
+[ "$(uname -m)" = "x86_64" ] && INTEL_CHAM=" — máy Intel: Homebrew phải tự biên dịch, có thể mất 1 giờ trở lên, cứ để máy chạy"
+
 buoc "1/6  Máy Mac"
 if [ "$(uname)" = "Darwin" ]; then ok "macOS $(sw_vers -productVersion 2>/dev/null)"; else loi "Script này chỉ dành cho macOS."; dung; fi
 
@@ -43,7 +47,7 @@ tim_python() {
 }
 PY=$(tim_python)
 if [ -z "$PY" ]; then
-  chu_y "Chưa có Python 3.11+ (Python sẵn của macOS là bản cũ). Đang cài python@3.12 bằng Homebrew…"
+  chu_y "Chưa có Python 3.11+ (Python sẵn của macOS là bản cũ). Đang cài python@3.12 bằng Homebrew…$INTEL_CHAM"
   brew install python@3.12 || { loi "Cài Python không được (xem dòng lỗi ở trên)."; dung; }
   PY=$(tim_python) || { loi "Đã cài nhưng chưa tìm thấy Python 3.11+. Đóng Terminal, mở lại rồi chạy lại."; dung; }
 fi
@@ -52,7 +56,7 @@ ok "$("$PY" --version) ($PY)"
 buoc "4/6  ffmpeg (xử lý video, cần bộ mã hoá libx264)"
 co_x264() { command -v ffmpeg >/dev/null 2>&1 && ffmpeg -hide_banner -encoders 2>/dev/null | grep -q libx264; }
 if ! co_x264; then
-  chu_y "Chưa có ffmpeg (hoặc bản thiếu libx264). Đang cài bằng Homebrew… (lần đầu có thể mất vài phút)"
+  chu_y "Chưa có ffmpeg (hoặc bản thiếu libx264). Đang cài bằng Homebrew… (lần đầu có thể mất vài phút)$INTEL_CHAM"
   brew install ffmpeg || { loi "Cài ffmpeg không được (xem dòng lỗi ở trên)."; dung; }
   hash -r
 fi

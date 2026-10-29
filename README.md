@@ -18,7 +18,7 @@ Cách tool làm việc:
 
 | | |
 |---|---|
-| Hệ điều hành | **macOS** (đã thử trên Apple Silicon, macOS 15) |
+| Hệ điều hành | **macOS** (đã thử trên Apple Silicon, macOS 15). Mac **Intel**: chưa thử thật; cần macOS 13 trở lên (gói opencv cho Intel không có bản cho macOS cũ hơn); Homebrew đã ngừng bản dựng sẵn cho Intel nên `ffmpeg` và Python phải tự biên dịch, lần cài đầu có thể mất hàng giờ — **ước tính, chưa đo**. Render dùng CPU, máy i5 đời 2019 có thể chậm hơn khoảng 2–3 lần so với số đo ở mục Tốc độ — cũng là **ước tính** |
 | Python | **3.11 trở lên** (đã chạy thử với 3.14.7) |
 | ffmpeg | bản có bộ mã hoá **libx264**. Bản `brew install ffmpeg` có sẵn. |
 | agy *(tuỳ chọn)* | để tool **tự tìm** logo cũ. Không có agy thì bạn khoanh tay, mọi thứ khác vẫn chạy. |

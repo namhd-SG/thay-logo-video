@@ -1,0 +1,118 @@
+"""Video TỔNG HỢP có ground truth cho test lõi thay logo.
+
+Mỗi khung: nền gradient trôi + nhiễu (đổi theo khung, để trung vị triệt nền như video thật) ⇒ dán watermark chữ trắng bán trong
+suốt trôi chậm. Tuỳ chọn thêm phụ đề trắng viền đen, phụ đề trắng bóng mờ tràn ngang, hoặc icon đặc tương phản cao.
+Không đọc file nào ngoài repo.
+"""
+from __future__ import annotations
+
+from dataclasses import dataclass, field
+from typing import Callable
+
+import cv2
+import numpy as np
+
+from thay_logo.box_moi import BoxMoi
+from thay_logo.nguon_khung import NguonKhungMang
+
+RONG, CAO = 360, 640
+FONT = cv2.FONT_HERSHEY_SIMPLEX
+
+
+@dataclass
+class ClipTongHop:
+    nguon: NguonKhungMang
+    hop_that: list[tuple[int, int, int, int]]  # box watermark thật mỗi khung (x, y, w, h)
+    khung_phu_de: set[int] = field(default_factory=set)
+
+    def box_moi(self, khung=(5, 15, 25, 35, 45, 55), nguon="agy", cum=None) -> list[BoxMoi]:
+        return [BoxMoi(i, *self.hop_that[i], nguon=nguon, cum=cum) for i in khung]
+
+    def box_gia(self, khung: int = 5, cum: int | None = None) -> BoxMoi:
+        """Box mồi trên chỗ chỉ có nền nhiễu (agy gọi nhầm nội dung): không lặp lại ở khung khác ⇒ không được thành vết."""
+        return BoxMoi(khung, 220, 100, 80, 24, nguon="agy", cum=cum)
+
+
+def _nen(rng: np.random.Generator, i: int) -> np.ndarray:
+    yy, xx = np.mgrid[0:CAO, 0:RONG].astype(np.float32)
+    g = 70 + 50 * np.sin((xx + 7 * i) / 41.0) * np.cos((yy - 5 * i) / 57.0) + 0.06 * yy
+    g += rng.normal(0, 6, g.shape)
+    return np.clip(g, 0, 255).astype(np.float32)
+
+
+def _mat_na_chu(chu: str, scale: float, day: int) -> np.ndarray:
+    (tw, th), base = cv2.getTextSize(chu, FONT, scale, day)
+    m = np.zeros((th + base + 4, tw + 4), np.uint8)
+    cv2.putText(m, chu, (2, th + 2), FONT, scale, 255, day, cv2.LINE_AA)
+    return m.astype(np.float32) / 255.0
+
+
+def _dan(g: np.ndarray, m: np.ndarray, x: int, y: int, mau: float, alpha: float) -> None:
+    h, w = m.shape
+    vung = g[y:y + h, x:x + w]
+    a = m[:vung.shape[0], :vung.shape[1]] * alpha
+    vung[:] = (1 - a) * vung + a * mau
+
+
+def tao_clip(n: int = 60, *, phu_de_vien_den: range | None = None, phu_de_bong_mo: range | None = None,
+             icon_dac: bool = False, icon_nen: float = 220.0, icon_tam: float = 120.0, seed: int = 7,
+             duong_di: Callable[[int], tuple[int, int]] | None = None, che_khung: set[int] | None = None,
+             vang_khung: set[int] | None = None,
+             mo_khung: set[int] | None = None, alpha_mo: float = 0.12) -> ClipTongHop:
+    """`duong_di(i)` = vị trí (x, y) watermark chữ ở khung i (mặc định trôi chậm). `che_khung` = khung mà một miếng đặc phủ kín
+    watermark (logo còn đó nhưng dò không thấy ⇒ lõi phải LẤP lỗ); `hop_that` vẫn ghi vị trí thật ở khung đó.
+    `vang_khung` = khung KHÔNG có watermark (logo tắt giữa hai lần hiện, kiểu nhảy chỗ) — dán vào đó là dán sai.
+    `mo_khung` = khung watermark vẫn ở đó nhưng MỜ hẳn (alpha `alpha_mo`): kiểu logo trong suốt trôi qua nền sáng/rối ở Test3 v04."""
+    rng = np.random.default_rng(seed)
+    if icon_dac:  # logo đặc tương phản cao (kiểu icon app góc cố định): ô màu `icon_nen` + chấm tròn `icon_tam`
+        wm = np.zeros((40, 40), np.float32)
+        wm[4:36, 4:36] = 1.0
+        wm_sang = np.zeros_like(wm)
+        cv2.circle(wm_sang, (20, 20), 9, 1.0, -1)
+    else:
+        wm = _mat_na_chu("WMARK", 0.9, 2)
+    h, w = wm.shape
+    sub = _mat_na_chu("Hello subtitle", 0.8, 2)
+    khung, hop = [], []
+    for i in range(n):
+        g = _nen(rng, i)
+        x, y = (300 - w, 30) if icon_dac else (duong_di(i) if duong_di else (60 + i, 420 + (i // 3)))
+        if icon_dac:
+            _dan(g, wm, x, y, icon_nen, 1.0)
+            _dan(g, wm_sang, x, y, icon_tam, 1.0)
+        elif vang_khung and i in vang_khung:
+            pass  # logo tắt: không dán gì
+        elif che_khung and i in che_khung:
+            _dan(g, np.ones((h + 12, w + 12), np.float32), max(0, x - 6), max(0, y - 6), 100.0, 1.0)  # miếng đặc xám phủ kín vùng logo: ứng viên không còn
+        else:
+            _dan(g, wm, x, y, 255.0, alpha_mo if mo_khung and i in mo_khung else 0.45)
+        hop.append((x, y, w, h))
+        if phu_de_vien_den and i in phu_de_vien_den:  # chữ trắng viền đen phủ ngang qua box
+            vien = cv2.dilate(sub, np.ones((5, 5), np.uint8))
+            sx, sy = max(0, x - 40), y + h // 2 - sub.shape[0] // 2
+            _dan(g, vien, sx, sy, 0.0, 1.0)
+            _dan(g, sub, sx, sy, 255.0, 1.0)
+        if phu_de_bong_mo and i in phu_de_bong_mo:  # chữ trắng có bóng mờ, KHÔNG viền đen <45, tràn hai bên box
+            bong = cv2.GaussianBlur(sub, (0, 0), 3)
+            sx, sy = max(0, x - 70), y + h // 2 - sub.shape[0] // 2
+            _dan(g, bong, sx + 2, sy + 2, 60.0, 0.6)
+            _dan(g, sub, sx, sy, 250.0, 1.0)
+        khung.append(np.clip(g, 0, 255).astype(np.uint8))
+    tap_pd = set(phu_de_vien_den or ()) | set(phu_de_bong_mo or ())
+    return ClipTongHop(NguonKhungMang(khung), hop, tap_pd)
+
+
+def tam_lech(e: dict, hop: tuple[int, int, int, int]) -> float:
+    x, y, w, h = hop
+    return float(np.hypot(e["x"] + e["w"] / 2 - (x + w / 2), e["y"] + e["h"] / 2 - (y + h / 2)))
+
+
+def dan_khoi_trong_box(clip: ClipTongHop, khung, ti_le: float = 0.25) -> None:
+    """Khối chữ đặc NHỎ (nền 20, vạch 250) chiếm `ti_le` bề ngang box, nằm GỌN trong box; watermark phần còn lại vẫn thấy."""
+    for i in khung:
+        x, y, w, h = clip.hop_that[i]
+        g = clip.nguon.doc(i)
+        bw = int(w * ti_le)
+        g[y + 2:y + h - 2, x + w - bw:x + w] = 20
+        g[y + h // 3:y + 2 * h // 3, x + w - bw + 3:x + w - 3] = 250
+        clip.khung_phu_de.add(i)

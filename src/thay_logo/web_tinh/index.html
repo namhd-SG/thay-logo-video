@@ -1,0 +1,125 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Thay logo</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=Public+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" />
+<link rel="stylesheet" href="/tinh/app.css" />
+</head>
+<body>
+<div class="app">
+  <header class="topbar">
+    <div class="brand"><span class="dot"></span>Thay logo</div>
+    <nav class="topbar-nav">
+      <span id="agy-chip" class="chip"></span>
+      <button id="theme-toggle" type="button" title="Đổi giao diện sáng/tối">🌓 Giao diện</button>
+    </nav>
+  </header>
+
+  <section class="tl-head">
+    <div>
+      <h1>Thay logo</h1>
+      <p id="tom-tat" class="muted"></p>
+    </div>
+    <div class="tl-logo">
+      <img id="logo-anh" src="/api/logo.png" alt="Logo đang dùng" />
+      <div class="tl-logo-nut">
+        <span class="muted nho" id="logo-nhan">Logo mới đang dùng</span>
+        <label class="btn">Đổi logo…<input id="logo-file" type="file" accept="image/png" hidden /></label>
+        <button id="logo-mau" type="button" class="btn ghost" hidden>Dùng logo mẫu</button>
+      </div>
+    </div>
+  </section>
+  <p id="loi-chung" class="error-text" role="alert" hidden></p>
+
+  <ol class="tl-buoc" aria-label="Các bước thay logo">
+    <li><b>1</b><span><strong>Đưa video vào</strong><small>tải từ máy · dán link Drive công khai</small></span></li>
+    <li><b>2</b><span><strong>Máy tìm logo cũ</strong><small>agy tự tìm · không chắc thì bạn khoanh tay</small></span></li>
+    <li><b>3</b><span><strong>Duyệt Đạt / Hỏng</strong><small>Hỏng thì khoanh thêm, chạy lại</small></span></li>
+    <li><b>4</b><span><strong>Tải về</strong><small>video mới, tiếng giữ nguyên</small></span></li>
+  </ol>
+
+  <section class="panel tl-nhap" aria-labelledby="nhap-h">
+    <div class="tl-nhap-head">
+      <h2 id="nhap-h">Đưa video vào</h2>
+      <div class="tl-tabs" role="tablist">
+        <button type="button" role="tab" class="tab" data-tab="may" aria-selected="true">Tải từ máy</button>
+        <button type="button" role="tab" class="tab" data-tab="link" aria-selected="false">Dán link Drive</button>
+      </div>
+    </div>
+    <div id="tab-may" class="tab-vung">
+      <label id="tha-vao" class="tha-vao">
+        <input id="file-video" type="file" accept="video/*,.mp4,.mov,.m4v,.mkv,.webm,.avi" multiple hidden />
+        <span class="tha-ic">⇪</span>
+        <strong>Kéo thả video vào đây</strong>
+        <span class="muted">hoặc bấm để chọn — chọn được nhiều file một lúc (mp4, mov, mkv, webm…)</span>
+      </label>
+      <div id="tien-do" class="tien-do"></div>
+    </div>
+    <div id="tab-link" class="tab-vung" hidden>
+      <form id="form-link" class="form-link">
+        <input id="o-link" type="url" placeholder="https://drive.google.com/file/d/…/view" aria-label="Link Google Drive" required />
+        <button type="submit" class="btn primary">Thêm</button>
+      </form>
+      <p class="muted nho">Link phải là MỘT file video, chia sẻ "Bất kỳ ai có đường liên kết". Link thư mục chưa hỗ trợ.</p>
+      <p id="loi-link" class="error-text" role="alert"></p>
+    </div>
+  </section>
+
+  <section class="tl-loc" aria-label="Bộ lọc">
+    <div id="loc" class="loc"></div>
+  </section>
+
+  <section id="ds-video" class="ds-video" aria-live="polite"></section>
+  <p id="trong" class="trong" hidden>Chưa có video nào. Đưa một video vào ở khung trên — hoặc thử với <code>vi_du/video_mau.mp4</code> trong thư mục tool.</p>
+</div>
+
+<!-- Màn khoanh logo cũ -->
+<div id="khoanh" class="khoanh-nen" hidden>
+  <div class="khoanh" role="dialog" aria-modal="true" aria-labelledby="khoanh-ten">
+    <header class="khoanh-dau">
+      <div>
+        <h2 id="khoanh-ten">Khoanh logo cũ</h2>
+        <p class="muted nho">Kéo chuột quanh logo cũ trên khung hình. Nên khoanh 3–6 khung rải đều video, khoanh SÁT logo.
+          Logo trôi/đổi chỗ thì khoanh ở nhiều đoạn. Video có 2 logo khác nhau: chọn "Logo cũ #2" rồi khoanh cái thứ hai.</p>
+      </div>
+      <button type="button" class="btn ghost" id="khoanh-dong" aria-label="Đóng">✕</button>
+    </header>
+    <div class="khoanh-than">
+      <div class="khoanh-trai">
+        <div class="khung-vung" id="khung-vung">
+          <img id="khung-anh" alt="Khung hình đang khoanh" draggable="false" />
+          <canvas id="khung-ve"></canvas>
+        </div>
+        <div class="dieu-khien">
+          <button type="button" class="btn" data-buoc="-10" title="Lùi 10 khung (Shift+←)">«</button>
+          <button type="button" class="btn" data-buoc="-1" title="Lùi 1 khung (←)">‹</button>
+          <input id="thanh-khung" type="range" min="0" value="0" aria-label="Khung hình" />
+          <button type="button" class="btn" data-buoc="1" title="Tới 1 khung (→)">›</button>
+          <button type="button" class="btn" data-buoc="10" title="Tới 10 khung (Shift+→)">»</button>
+          <span id="vi-tri" class="mono nho"></span>
+        </div>
+        <div id="dai-box" class="dai-box" title="Vạch = khung đã khoanh"></div>
+      </div>
+      <aside class="khoanh-phai">
+        <div class="cum-chon" id="cum-chon"></div>
+        <h3>Đã khoanh <span id="dem-box" class="muted"></span></h3>
+        <div id="ds-box" class="ds-box"></div>
+        <p id="khoanh-loi" class="error-text" role="alert"></p>
+        <div class="khoanh-nut">
+          <button type="button" class="btn primary" id="khoanh-chay">Lưu &amp; chạy</button>
+          <button type="button" class="btn" id="khoanh-luu">Chỉ lưu</button>
+        </div>
+      </aside>
+    </div>
+  </div>
+</div>
+
+<!-- Xem ảnh lớn -->
+<div id="xem-anh" class="khoanh-nen" hidden><img id="xem-anh-img" alt="" /></div>
+
+<script src="/tinh/app.js"></script>
+<script src="/tinh/khoanh.js"></script>
+</body>
+</html>
